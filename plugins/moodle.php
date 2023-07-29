@@ -78,6 +78,33 @@ class moodle extends phplistPlugin
       if ($count < 1) {
         $this->authProvider = false;
       }
+
+    //   ## convert the attribute settings to select if attributes are found
+      $attreq = Sql_Query(sprintf('select id,name from %s where type = "textline"',$GLOBALS['tables']['attribute']));
+      if (Sql_Affected_Rows()) {
+        $attributes = array();
+        while ($row = Sql_Fetch_assoc($attreq)) {
+          $attributes[$row['id']] = $row['name'];
+        }
+        $this->settings['moodle_firstname'] = array (
+          'values'       => $attributes,
+          'value'        => $this->firstNameAtt,
+          'description'  => s('First Name attribute'),
+          'type'         => 'select',
+          'allowempty'   => true,
+          'category'     => 'Moodle',
+        );
+        $this->settings['moodle_lastname'] = array (
+          'values'       => $attributes,
+          'value'        => $this->lastNameAtt,
+          'description'  => s('Last Name attribute'),
+          'type'         => 'select',
+          'allowempty'   => true,
+          'category'     => 'Moodle',
+        );
+      } else {
+        $_SESSION['moodle_attributecheck'] = time(); // potentially add caching of the above results, to save some queries
+      }
     }
 
     /**
@@ -260,7 +287,7 @@ class moodle extends phplistPlugin
         if (empty($login) || ($password == "")) {
           return array(0, s('Please enter your credentials.'));
         }
-        if ($admindata['suspended']) {
+        if (!empty($admindata['suspended'])) {
           return array(0, s('your account has been suspended'));
         }
         if (
@@ -289,13 +316,13 @@ class moodle extends phplistPlugin
      */
     public function validateAccount($id)
     {
-        $query = sprintf('select mu.id from %1$suser mu, %1$srole_assignments mra 
+        $query = sprintf('select mu.id,mu.suspended from %1$suser mu, %1$srole_assignments mra 
         where mu.auth = "manual" and ! mu.suspended and ! mu.deleted and mra.roleid = %2$d and mra.userid = mu.id  and mu.id = %3$d', 
           $this->moodle_table_prefix, $this->moodleAdminRole, $id);
         $data = Sql_Fetch_Row_Query($query);
-        if (!$data[0]) {
+        if (empty($data[0])) {
           return array(0, s('No such account'));
-        } elseif ($data[1]) {
+        } elseif (!empty($data[1])) {
           return array(0, s('your account has been disabled'));
         }
 
