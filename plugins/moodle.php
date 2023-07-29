@@ -94,7 +94,7 @@ class moodle extends phplistPlugin
       $syncHour = getConfig('moodle_synchour');
       cl_output('Moodle queue start');
       $syncAge = (int)time() - (int)$lastSynced;
-      if ($his->developMode) { ## allow forcing the sync all the time when developing
+      if ($this->developMode) { ## allow forcing the sync all the time when developing
         $syncAge = 86401;
         $syncHour = 23;
       }
