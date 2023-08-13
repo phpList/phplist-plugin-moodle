@@ -73,7 +73,7 @@ class moodle extends phplistPlugin
       $query = sprintf('select username, mu.id from %1$suser mu, %1$srole_assignments mra 
         where mu.auth = "manual" and ! mu.suspended and ! mu.deleted and mra.roleid = %2$d and mra.userid = mu.id', 
         $this->moodle_table_prefix,$this->moodleAdminRole);
-      Sql_Query($query);
+      Sql_Query($query,1);
       $count = Sql_Affected_Rows();
       if ($count < 1) {
         $this->authProvider = false;
